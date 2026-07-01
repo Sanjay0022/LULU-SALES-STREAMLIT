@@ -11,7 +11,11 @@ import plotly.graph_objects as go
 import streamlit as st
 
 APP_DIR = Path(__file__).parent
-DATA_PATH = APP_DIR / "data" / "lulu_sales.csv"
+_candidate_paths = [
+    APP_DIR / "data" / "lulu_sales.csv",  # expected location
+    APP_DIR / "lulu_sales.csv",           # fallback: file sitting in repo root
+]
+DATA_PATH = next((p for p in _candidate_paths if p.exists()), _candidate_paths[0])
 
 # ------------------------------------------------------------------
 # Page config
@@ -36,12 +40,12 @@ def load_data(path: Path) -> pd.DataFrame:
 
 
 if not DATA_PATH.exists():
+    checked = "\n".join(f"- `{p}`" for p in _candidate_paths)
     st.error(
-        f"Data file not found at `{DATA_PATH}`.\n\n"
-        "This usually means the `data/lulu_sales.csv` file wasn't pushed to "
-        "your GitHub repo (check it isn't excluded by .gitignore and that "
-        "it was actually committed), or the repo folder structure doesn't "
-        "match what app.py expects.\n\n"
+        f"Data file not found. Checked:\n{checked}\n\n"
+        "This usually means `lulu_sales.csv` wasn't pushed to your GitHub "
+        "repo (check it isn't excluded by .gitignore and that it was "
+        "actually committed).\n\n"
         f"Files found next to app.py: {[p.name for p in APP_DIR.iterdir()]}"
     )
     st.stop()
